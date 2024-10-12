@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./devopscaseback # Caminho para o Dockerfile do backend
+    ports:
+      - "3000:3000" # Expondo a porta do backend
+    depends_on:
+      - db # Backend depende do banco de dados
+    environment:
+      DATABASE_URL: "postgres://postgres:password@db:5432/my_database"
+      RAILS_ENV: "development"
+    volumes:
+      - ./devopscaseback:/app # Isso garante que as mudanças no backend sejam refletidas no contêiner
+    networks:
+      - app-network
+
+  frontend:
+    build: ./devopscasefront # Caminho para o Dockerfile do frontend
+    ports:
+      - "4173:4173" # Porta do frontend
+    depends_on:
+      - backend # Frontend depende do backend estar em execução
+    volumes:
+      - ./devopscasefront:/app # Isso garante que as mudanças no frontend sejam refletidas no contêiner
+    networks:
+      - app-network
+
+  db:
+    image: postgres:13 # Usando a imagem oficial do PostgreSQL
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: my_database
+    volumes:
+      - db-data:/var/lib/postgresql/data # Persistir os dados do banco
+    ports:
+      - "5432:5432" # Expondo a porta do banco de dados, se necessário
+    networks:
+      - app-network
+
+volumes:
+  db-data: # Volume persistente para o banco de dados
+
+networks:
+  app-network: # Rede compartilhada entre os serviços
+    driver: bridge
